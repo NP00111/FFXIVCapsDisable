@@ -31,6 +31,7 @@
             components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Options));
             timer_chk_ffxiv_process = new System.Windows.Forms.Timer(components);
+            chkAutoStart = new CheckBox();
             SuspendLayout();
             // 
             // timer_chk_ffxiv_process
@@ -39,20 +40,34 @@
             timer_chk_ffxiv_process.Interval = 10000;
             timer_chk_ffxiv_process.Tick += timer1_Tick;
             // 
+            // chkAutoStart
+            // 
+            chkAutoStart.AutoSize = true;
+            chkAutoStart.Location = new Point(19, 11);
+            chkAutoStart.Name = "chkAutoStart";
+            chkAutoStart.Size = new Size(162, 19);
+            chkAutoStart.TabIndex = 0;
+            chkAutoStart.Text = "Auto Start with Windows?";
+            chkAutoStart.UseVisualStyleBackColor = true;
+            chkAutoStart.Click += chkAutoStart_Click;
+            // 
             // Options
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(354, 74);
+            Controls.Add(chkAutoStart);
             Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "Options";
             Text = "FFXIV CapsLock Disabler";
             Load += Options_Load;
             ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
 
         private System.Windows.Forms.Timer timer_chk_ffxiv_process;
+        private CheckBox chkAutoStart;
     }
 }

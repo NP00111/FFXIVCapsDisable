@@ -79,12 +79,44 @@ namespace FFXIV_Disable_Caps
         {
             CheckProcess();
         }
-        private void Options_Load(object sender, EventArgs e)
+
+
+        private void SetStartup()
         {
+            string AppName = "FFXIV Caps Lock Disabler";
+            RegistryKey rk = Registry.CurrentUser.OpenSubKey
+                ("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+
+            if (chkAutoStart.Checked)
+                rk.SetValue(AppName, Application.ExecutablePath);
+            else
+                rk.DeleteValue(AppName, false);
+
+        }
+
+        private void ReadStartup()
+        {
+            string AppName = "FFXIV Caps Lock Disabler";
+            RegistryKey rk = Registry.CurrentUser.OpenSubKey
+                ("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+
+            var sStartup = rk.GetValue(AppName);
+            if (sStartup == null)
+                chkAutoStart.Checked = false;
+            else
+                chkAutoStart.Checked = true;
 
         }
 
 
+        private void Options_Load(object sender, EventArgs e)
+        {
+            ReadStartup();
+        }
 
+        private void chkAutoStart_Click(object sender, EventArgs e)
+        {
+            SetStartup();
+        }
     }
 }
