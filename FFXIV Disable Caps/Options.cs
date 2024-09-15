@@ -1,18 +1,13 @@
 using Microsoft.Win32;
-using System;
-using System.ComponentModel;
 using System.Diagnostics;
-using System.Drawing;
-using System.Resources;
 using System.Runtime.InteropServices;
-using System.Windows.Forms;
-using static System.Windows.Forms.DataFormats;
-
 
 namespace FFXIV_Disable_Caps
 {
     public partial class Options : Form
     {
+
+        #region Global Declarations
 
         private const int WH_KEYBOARD_LL = 13;
         private const int VK_CONTROL = 17;
@@ -42,27 +37,57 @@ namespace FFXIV_Disable_Caps
         private IntPtr ptrHook;
         private LowLevelKeyboardProc objKeyboardProcess;
 
+        #endregion
+
+        #region Form Functions
         public Options()
         {
             InitializeComponent();
 
             using (ProcessModule mainModule = Process.GetCurrentProcess().MainModule)
             {
-                objKeyboardProcess = new LowLevelKeyboardProc(captureKey);
+                objKeyboardProcess = new LowLevelKeyboardProc(CaptureKeyPress);
                 ptrHook = SetWindowsHookEx(13, objKeyboardProcess, GetModuleHandle(mainModule.ModuleName), 0U);
             }
         }
 
-        public IntPtr captureKey(int nCode, IntPtr wp, IntPtr lp)
+        private void Options_Load(object sender, EventArgs e)
+        {
+            ReadStartup();
+        }
+
+        private void Options_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            UnhookWindowsHookEx(ptrHook);
+        }
+
+        private void Options_Resize(object sender, EventArgs e)
+        {
+            if (this.WindowState == FormWindowState.Minimized)
+            {
+                this.TrayIcon.Visible = true;
+                this.Hide();
+            }
+            else
+                this.TrayIcon.Visible = false;
+        }
+
+        private void TrayIcon_Click(object sender, EventArgs e)
+        {
+            this.Show();
+            this.WindowState = FormWindowState.Normal;
+        }
+        #endregion
+
+        #region KeyPress Functions
+        public IntPtr CaptureKeyPress(int nCode, IntPtr wp, IntPtr lp)
         {
             if (Gamerunning && nCode >= 0)
             {
                 KBDLLHOOKSTRUCT objKeyInfo = (KBDLLHOOKSTRUCT)Marshal.PtrToStructure(lp, typeof(KBDLLHOOKSTRUCT));
 
                 if (objKeyInfo.key == Keys.Capital)
-                {
                     return (IntPtr)1;
-                }
             }
             return CallNextHookEx(ptrHook, nCode, wp, lp);
         }
@@ -75,17 +100,18 @@ namespace FFXIV_Disable_Caps
                 Gamerunning = true;
         }
 
-        private void timer1_Tick(object sender, EventArgs e)
+        private void timert_check_process(object sender, EventArgs e)
         {
             CheckProcess();
         }
 
+        #endregion
 
+        #region Registry Functions
         private void SetStartup()
         {
             string AppName = "FFXIV Caps Lock Disabler";
-            RegistryKey rk = Registry.CurrentUser.OpenSubKey
-                ("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+            RegistryKey rk = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
 
             if (chkAutoStart.Checked)
                 rk.SetValue(AppName, Application.ExecutablePath);
@@ -93,30 +119,18 @@ namespace FFXIV_Disable_Caps
                 rk.DeleteValue(AppName, false);
 
         }
-
         private void ReadStartup()
         {
             string AppName = "FFXIV Caps Lock Disabler";
-            RegistryKey rk = Registry.CurrentUser.OpenSubKey
-                ("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+            RegistryKey rk = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
 
-            var sStartup = rk.GetValue(AppName);
-            if (sStartup == null)
-                chkAutoStart.Checked = false;
-            else
-                chkAutoStart.Checked = true;
-
+            chkAutoStart.Checked = (rk.GetValue(AppName) == null) ? false : true;
         }
-
-
-        private void Options_Load(object sender, EventArgs e)
-        {
-            ReadStartup();
-        }
-
         private void chkAutoStart_Click(object sender, EventArgs e)
         {
             SetStartup();
         }
+
+        #endregion
     }
 }
